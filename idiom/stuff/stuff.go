@@ -8,19 +8,23 @@ type StuffClient interface {
 
 //two configuration options (timeout and retries)
 type stuffClient struct {
-	conn    string
-	timeout int
-	retries int
+	conn string
+	opts StuffClientOptions
 }
 
 func (s *stuffClient) DoStuff() error {
-	fmt.Println(s.conn, "+", s.timeout, "+", s.retries)
+	fmt.Println(s.conn, "+", s.opts.timeout, "+", s.opts.retries)
 	return nil
 }
 
 type StuffClientOptions struct {
-	Retries int
-	Timeout int
+	retries int
+	timeout int
+}
+
+var defaultStuffClientOptions = StuffClientOptions{
+	retries: 3,
+	timeout: 5,
 }
 
 /*
@@ -41,25 +45,21 @@ type StuffClientOption func(*StuffClientOptions)
 
 func WithTimeout(t int) StuffClientOption {
 	return func(options *StuffClientOptions) {
-		options.Timeout = t
+		options.timeout = t
 	}
 }
 func WithRetries(r int) StuffClientOption {
 	return func(options *StuffClientOptions) {
-		options.Retries = r
+		options.retries = r
 	}
 }
 func NewStuffClient(conn string, opts ...StuffClientOption) StuffClient {
-	options := StuffClientOptions{
-		Timeout: 10,
-		Retries: 2,
-	}
+	options := defaultStuffClientOptions
 	for _, o := range opts {
 		o(&options)
 	}
 	return &stuffClient{
-		conn:    conn,
-		timeout: options.Timeout,
-		retries: options.Retries,
+		conn: conn,
+		opts: options,
 	}
 }
